@@ -1,0 +1,9 @@
+node_modules/
+.next/
+*.exe
+*.msi
+build/
+dist/
+.DS_Store
+.env*
+! .env.example

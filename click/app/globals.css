@@ -1,0 +1,127 @@
+@import "tailwindcss";
+
+/* Force Tailwind to scan the shared themes file for class strings */
+@source "../app/lib/**/*.ts";
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   DARK BASE LAYER — minimal safety net.
+   html/body stay black so any unthemed gap (scrollbar gutter, paint flash)
+   is dark instead of white. Everything inside the zoom wrapper gets its
+   background from the active theme's t.appBg Tailwind class, which is
+   injected at render time. CSS variables (--theme-accent etc.) are set by
+   the useEffect in page.tsx whenever themeIndex changes.
+   ═══════════════════════════════════════════════════════════════════════════ */
+html, body {
+  background-color: var(--app-bg, #000000);
+  color: var(--app-text, #ffffff);
+  color-scheme: dark;
+  overscroll-behavior: none;
+  -webkit-overscroll-behavior: none;
+}
+
+body {
+  touch-action: pan-y;
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+  overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+}
+
+/* Next.js root mount — transparent so the zoom wrapper's theme gradient shows through */
+#__next {
+  background-color: transparent !important;
+  min-height: 100vh;
+}
+
+/* ── Row color engine — all vars injected by injectThemeCSSVars() before paint ─
+   --row-bg           idle row background (derived from theme previewBg)
+   --row-bg-alt       zebra-stripe alternate (accent at 5% opacity)
+   --row-bg-active    active session (accent at 16% opacity + glow)
+   --row-bg-selected  selected row (accent at 11% opacity)
+   --row-border       row divider line (accent at 13% opacity)
+   --row-glow         neon box-shadow for active rows
+   ─────────────────────────────────────────────────────────────────────────── */
+.cv-row {
+  background-color: var(--row-bg, rgba(8, 14, 26, 0.95)) !important;
+  border-bottom-color: var(--row-border, rgba(255, 255, 255, 0.04)) !important;
+  color: #ffffff !important;
+  content-visibility: auto;
+  contain-intrinsic-size: 0 40px;
+  min-height: 40px;
+}
+
+/* Zebra stripes — even rows get a barely-visible accent tint */
+.cv-row:nth-child(even) {
+  background-color: var(--row-bg-alt, rgba(34, 211, 238, 0.03)) !important;
+}
+
+/* Priority-state overrides (2-class specificity beats nth-child pseudo) */
+.cv-row.bg-slate-800\/90,
+.cv-row.frozen-row    { background-color: rgba(24, 24, 27, 0.95) !important; }
+
+/* Active sessions — theme-tinted accent background + neon glow */
+.cv-row.bg-emerald-900\/30 {
+  background-color: var(--row-bg-active, rgba(6, 40, 20, 0.9)) !important;
+  box-shadow: var(--row-glow, none);
+}
+
+/* Selected rows — softer accent highlight */
+.cv-row.bg-cyan-900\/40 {
+  background-color: var(--row-bg-selected, rgba(8, 51, 68, 0.9)) !important;
+}
+
+/* Inputs stay transparent so the row background shows through */
+@layer base {
+  input {
+    background-color: transparent !important;
+    color: #ffffff !important;
+    border-bottom: 1px solid rgba(100, 116, 139, 0.5);
+    outline: none;
+    padding-left: 4px;
+    padding-right: 4px;
+    width: 100%;
+    font-family: monospace;
+    font-size: 0.875rem;
+    font-weight: 600;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.6);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    transition: border-color 0.15s;
+  }
+
+  input:focus {
+    /* Uses the active theme's accent color — falls back to cyan if var not yet set */
+    border-bottom-color: var(--theme-accent, rgb(34, 211, 238)) !important;
+    background-color: color-mix(in srgb, var(--theme-accent, rgb(34, 211, 238)) 12%, transparent) !important;
+  }
+
+  /* Remove number spinner */
+  input[type=number]::-webkit-inner-spin-button,
+  input[type=number]::-webkit-outer-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+  }
+}
+
+/* Mobile */
+@media (max-width: 768px) {
+  html, body {
+    -webkit-overflow-scrolling: touch;
+    overflow-y: auto;
+  }
+  .mobile-scroll-container {
+    -webkit-overflow-scrolling: touch;
+    overflow-y: auto;
+  }
+}
+
+/* Scrollbar */
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: rgba(0,0,0,0.3); border-radius: 6px; }
+::-webkit-scrollbar-thumb { background: linear-gradient(180deg, var(--theme-accent, #f97316), color-mix(in srgb, var(--theme-accent, #ea580c) 80%, #000)); border-radius: 6px; box-shadow: 0 0 6px color-mix(in srgb, var(--theme-accent, #f97316) 50%, transparent); }
+::-webkit-scrollbar-thumb:hover { background: linear-gradient(180deg, var(--theme-accent, #fb923c), color-mix(in srgb, var(--theme-accent, #f97316) 90%, #fff)); box-shadow: 0 0 12px color-mix(in srgb, var(--theme-accent, #f97316) 80%, transparent); }
